@@ -537,3 +537,26 @@ body.tela-mesa { overflow: hidden; }
     .usuario small { display: none; }
     .hud-acoes { width: 120px; }
 }
+
+/* Phones are not supported: the 3D table needs at least a tablet-sized screen.
+   Uses the viewport's shorter dimensions so phones are blocked in both orientations. */
+.tela-pequena { display: none; }
+@media (max-width: 699px), (max-height: 519px) {
+    body > :not(.tela-pequena) { display: none !important; }
+    body { overflow: hidden; }
+    .tela-pequena {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .tela-pequena img { filter: drop-shadow(0 6px 0 var(--contorno)); animation: flutuar 3s ease-in-out infinite; }
+    .tela-pequena h1 { margin: 0.8rem 0 0.2rem; font-size: 2rem; line-height: 1.05; color: var(--ouro); transform: rotate(-2deg); }
+    .tela-pequena p { margin: 0; max-width: 22rem; }
+    .tela-pequena .dica { margin-top: 0.6rem; }
+}

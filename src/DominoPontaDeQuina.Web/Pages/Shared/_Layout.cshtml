@@ -14,6 +14,12 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="@(ViewData["BodyClass"] ?? "")">
+    <div class="tela-pequena" role="alert">
+        <img src="~/img/logo.svg" alt="" width="88" height="88" />
+        <h1>Sua tela é muito pequena</h1>
+        <p>O Dominó Ponta de Quina precisa de uma tela maior para mostrar a mesa.</p>
+        <p class="dica">Jogue em um <strong>tablet</strong> ou <strong>computador</strong>.</p>
+    </div>
     <header class="topo">
         <a class="marca" href="/">
             <img src="~/img/logo.svg" alt="" width="32" height="32" />

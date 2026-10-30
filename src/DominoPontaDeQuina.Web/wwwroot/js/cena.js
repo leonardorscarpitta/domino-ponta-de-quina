@@ -432,10 +432,19 @@ export class Cena {
         this.renderer.setSize(w, h, false);
         const aspecto = w / h;
         this.camera.aspect = aspecto;
-        const recuo = Math.max(1, 1.7 / aspecto);
-        this.camera.position.set(0, 19.5 * recuo, 12.5 * recuo);
+
+        // Pull back just enough to keep the play area (chain + boneyard) in view horizontally.
+        // Portrait screens (tablets) get a more top-down angle to use their extra height.
+        const meiaLarguraVisivel = 11.8;
+        const tanHorizontal = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * aspecto;
+        const distancia = Math.max(23.2, meiaLarguraVisivel / tanHorizontal);
+        const direcao = aspecto < 1 ? new THREE.Vector3(0, 0.93, 0.37) : new THREE.Vector3(0, 19.5, 12.5);
+        this.camera.position.copy(direcao.normalize().multiplyScalar(distancia));
         this.camera.lookAt(0, 0, 0.9);
+        this.camera.far = distancia + 80;
         this.camera.updateProjectionMatrix();
+        this.scene.fog.near = distancia + 8;
+        this.scene.fog.far = distancia + 45;
     }
 
     #intersectar(e) {
