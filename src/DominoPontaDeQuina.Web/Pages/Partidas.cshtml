@@ -1,0 +1,79 @@
+@page
+@model PartidasModel
+@{
+    ViewData["Title"] = "Partidas";
+}
+<section class="lobby">
+    <div class="cartao lista-partidas">
+        <h1>Partidas</h1>
+        <p class="dica">Escolha uma mesa aguardando adversário.</p>
+        <partial name="Shared/_Mensagens" model="(Model.Sucesso, Model.Erro)" />
+
+        @if (Model.Disponiveis.Count == 0)
+        {
+            <p class="vazio">Nenhuma mesa aguardando agora. Crie uma ao lado.</p>
+        }
+        <ul>
+            @foreach (var p in Model.Disponiveis)
+            {
+                var minha = Model.Minhas.Contains(p.PartidaId);
+                <li>
+                    <span class="vagas" title="Participantes">1/2</span>
+                    <span class="alvo">Até @p.PontuacaoAlvo</span>
+                    @if (minha)
+                    {
+                        <a class="botao fantasma pequeno" href="/Partida/@p.PartidaId">Sua mesa ›</a>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="Entrar">
+                            <input type="hidden" name="partidaId" value="@p.PartidaId" />
+                            <input type="hidden" name="versao" value="@p.VersaoEstado" />
+                            <button class="botao pequeno" type="submit">Entrar ›</button>
+                        </form>
+                    }
+                </li>
+            }
+        </ul>
+        <a class="botao fantasma pequeno" href="/Partidas">Atualizar lista</a>
+    </div>
+
+    <div class="cartao">
+        <div class="perfil-destaque">
+            <div class="avatar grande">@(User.JogadorNome()?[..1].ToUpperInvariant() ?? "?")</div>
+            <strong>@User.JogadorNome()</strong>
+            <small>Pronto para jogar</small>
+        </div>
+
+        <h2>Criar mesa</h2>
+        <form method="post" asp-page-handler="Criar" class="formulario">
+            <label for="alvo">Pontuação alvo</label>
+            <select id="alvo" name="pontuacaoAlvo">
+                <option value="50">Até 50</option>
+                <option value="100" selected>Até 100</option>
+                <option value="150">Até 150</option>
+            </select>
+            <button class="botao" type="submit">Criar partida ›</button>
+        </form>
+
+        <hr />
+        <h2>Entrar por código</h2>
+        <form method="get" action="/Partida" class="formulario" id="form-codigo">
+            <label for="codigo">Código da partida</label>
+            <input id="codigo" name="id" required pattern="[0-9a-fA-F\-]{36}" placeholder="00000000-0000-0000-0000-000000000000" />
+            <button class="botao secundario" type="submit">Abrir mesa</button>
+        </form>
+
+        @if (Model.Minhas.Count > 0)
+        {
+            <hr />
+            <h2>Minhas partidas</h2>
+            <ul class="minhas">
+                @foreach (var id in Model.Minhas)
+                {
+                    <li><a href="/Partida/@id"><code>@id.ToString()[..8]</code> Retomar ›</a></li>
+                }
+            </ul>
+        }
+    </div>
+</section>

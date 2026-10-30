@@ -1,0 +1,111 @@
+@page "{id:guid?}"
+@model PartidaModel
+@using DominoPontaDeQuina.Web.Api
+@{
+    ViewData["Title"] = "Mesa";
+    ViewData["BodyClass"] = "tela-mesa";
+    var v = Model.Visao;
+}
+@if (v is null)
+{
+    <section class="cartao centro">
+        <h1>Mesa indisponível</h1>
+        <partial name="Shared/_Mensagens" model="((string?)null, Model.Erro)" />
+        <a class="botao" href="/Partidas">Voltar às partidas</a>
+    </section>
+}
+else
+{
+    <div id="mesa" class="mesa" data-partida="@v.PartidaId" data-estado="@Model.EstadoJson">
+        <canvas id="cena" aria-label="Mesa de dominó em 3D"></canvas>
+
+        <div class="hud">
+            <div class="hud-jogador oponente" id="hud-oponente">
+                <div class="avatar">@(v.Oponente?.Nome[..1].ToUpperInvariant() ?? "?")</div>
+                <div>
+                    <small data-campo="oponente-nome">@(v.Oponente?.Nome ?? "Aguardando jogador")</small>
+                    <strong data-campo="oponente-pontos">@(v.Oponente?.Pontuacao ?? 0)</strong>
+                </div>
+                <span class="pedras" data-campo="oponente-pedras">@(v.Oponente?.Pedras ?? 0) pedras</span>
+            </div>
+
+            <div class="hud-status">
+                <span data-campo="rodada">Rodada @v.Rodada</span>
+                <span data-campo="cava">Cava: @v.Cava</span>
+                <span data-campo="versao" title="Versão do estado confirmado">v@(v.Versao)</span>
+            </div>
+
+            <div class="hud-relogio" id="relogio" title="Tempo da sua jogada">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <circle class="trilho" cx="32" cy="32" r="28" />
+                    <circle class="progresso" cx="32" cy="32" r="28" />
+                </svg>
+                <span data-campo="segundos">–</span>
+            </div>
+
+            <label class="hud-autonomo" title="Deixa o jogador autônomo do servidor jogar por você">
+                <input type="checkbox" id="autonomo" @(v.Autonomo ? "checked" : "") />
+                <span>Jogador autônomo</span>
+            </label>
+
+            <div class="hud-jogador eu" id="hud-eu">
+                <div class="avatar rosa">@(v.Eu?.Nome[..1].ToUpperInvariant() ?? "?")</div>
+                <div>
+                    <small data-campo="eu-nome">@(v.Eu?.Nome ?? "Você")</small>
+                    <strong data-campo="eu-pontos">@(v.Eu?.Pontuacao ?? 0)</strong>
+                </div>
+            </div>
+
+            <div class="hud-vez" id="vez" @(v.MinhaVez ? "" : "hidden")>Sua vez</div>
+            <div class="hud-mensagem" id="mensagem" role="status" aria-live="polite"></div>
+
+            <div class="hud-acoes">
+                <button class="botao" id="btn-comprar" type="button" @(v.MinhaVez && v.ProximaAcao == ProximaAcaoPartida.Comprar ? "" : "disabled")>Comprar</button>
+                <button class="botao escuro" id="btn-passar" type="button" @(v.MinhaVez && v.ProximaAcao == ProximaAcaoPartida.Passar ? "" : "disabled")>Passar</button>
+            </div>
+
+            <aside class="hud-historico">
+                <h3>Histórico</h3>
+                <ol id="historico">
+                    @foreach (var e in v.Eventos)
+                    {
+                        <li class="@(e.SouEu ? "meu" : "")"><b>@e.Jogador</b> @e.Texto @if (e.Pontos > 0) { <em>+@e.Pontos</em> }</li>
+                    }
+                </ol>
+            </aside>
+        </div>
+
+        <div class="sobreposicao" id="espera" @(v.Situacao == SituacaoPartida.AguardandoInicio ? "" : "hidden")>
+            <div class="cartao centro">
+                <div class="assento-vazio" aria-hidden="true"></div>
+                <h2 data-campo="espera-titulo">@(v.Oponente is null ? "Aguardando jogador" : "Mesa completa")</h2>
+                <p class="dica">Compartilhe o código para outro perfil entrar:</p>
+                <code class="codigo">@v.PartidaId</code>
+                <button class="botao" id="btn-iniciar" type="button" @(v.Oponente is null ? "disabled" : "")>Iniciar partida</button>
+                <a class="botao fantasma pequeno" href="/Partidas">Voltar ao lobby</a>
+            </div>
+        </div>
+
+        <div class="sobreposicao" id="fim" @(v.Situacao == SituacaoPartida.Encerrada ? "" : "hidden")>
+            <div class="cartao centro">
+                <h2 data-campo="fim-titulo">Partida encerrada</h2>
+                <p data-campo="fim-placar"></p>
+                <a class="botao" href="/Partidas">Voltar às partidas</a>
+            </div>
+        </div>
+
+        <div class="escolha-lado" id="escolha-lado" hidden>
+            <span>Jogar em qual ponta?</span>
+            <button class="botao pequeno" type="button" data-lado="0">‹ Esquerda <em></em></button>
+            <button class="botao pequeno" type="button" data-lado="1">Direita › <em></em></button>
+            <button class="botao fantasma pequeno" type="button" data-lado="cancelar">Cancelar</button>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (v is not null)
+    {
+        <script type="module" src="~/js/mesa.js" asp-append-version="true"></script>
+    }
+}

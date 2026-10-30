@@ -1,0 +1,72 @@
+@page
+@model PerfisModel
+@{
+    ViewData["Title"] = "Perfis";
+    var selecionado = User.JogadorId();
+}
+<section class="painel-duplo">
+    <div class="cartao">
+        <h1>Seus jogadores</h1>
+        <p class="dica">
+            Escolha um jogador-perfil e ative-o neste cliente. Um perfil só pode estar ativo em um cliente por vez;
+            para usá-lo em outro lugar, libere-o aqui primeiro.
+        </p>
+        <partial name="Shared/_Mensagens" model="(Model.Sucesso, Model.Erro)" />
+
+        @if (Model.Perfis.Count == 0)
+        {
+            <p class="vazio">Nenhum perfil criado ainda.</p>
+        }
+        <ul class="lista-perfis">
+            @foreach (var p in Model.Perfis)
+            {
+                var ehSelecionado = p.JogadorId == selecionado;
+                var temChave = Model.ComChaveLocal.Contains(p.JogadorId);
+                <li class="@(ehSelecionado ? "selecionado" : "")">
+                    <div class="avatar">@(string.IsNullOrEmpty(p.Nome) ? "?" : p.Nome[..1].ToUpperInvariant())</div>
+                    <div class="perfil-info">
+                        <strong>@p.Nome</strong>
+                        <small>
+                            @if (ehSelecionado) { <span class="selo rosa">Em uso</span> }
+                            else if (p.Ativo && temChave) { <span class="selo">Ativo neste cliente</span> }
+                            else if (p.Ativo) { <span class="selo alerta">Ativo em outro cliente</span> }
+                            else { <span class="selo neutro">Livre</span> }
+                        </small>
+                    </div>
+                    <div class="acoes">
+                        @if (!ehSelecionado && (!p.Ativo || temChave))
+                        {
+                            <form method="post" asp-page-handler="Ativar">
+                                <input type="hidden" name="jogadorId" value="@p.JogadorId" />
+                                <button class="botao pequeno" type="submit">Usar este perfil</button>
+                            </form>
+                        }
+                        @if (p.Ativo && temChave)
+                        {
+                            <form method="post" asp-page-handler="Liberar">
+                                <input type="hidden" name="jogadorId" value="@p.JogadorId" />
+                                <button class="botao fantasma pequeno" type="submit" title="Libera o perfil para ser ativado em outro cliente">Liberar</button>
+                            </form>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <aside class="cartao">
+        <h2>Novo jogador</h2>
+        <form method="post" asp-page-handler="Criar" class="formulario">
+            <label for="nome">Nome</label>
+            <input id="nome" name="nome" required minlength="1" maxlength="150" autocomplete="off" />
+            <button class="botao" type="submit">Criar perfil</button>
+        </form>
+
+        <hr />
+        <h2>Conta</h2>
+        <p class="dica">Revogar invalida o token em todos os clientes. Será preciso solicitar outro por e-mail.</p>
+        <form method="post" action="/Sair?handler=Revogar">
+            <button class="botao perigo pequeno" type="submit">Revogar token e sair</button>
+        </form>
+    </aside>
+</section>

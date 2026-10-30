@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+      target: dev
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_CLI_HOME: /tmp/dotnet
+      NUGET_PACKAGES: /tmp/nuget
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - .:/src
+      - nuget:/tmp/nuget
+      - ./data:/src/data
+
+  test:
+    profiles: ["test"]
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /src
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      DOTNET_CLI_HOME: /tmp/dotnet
+      NUGET_PACKAGES: /tmp/nuget
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    volumes:
+      - .:/src
+      - nuget:/tmp/nuget
+    command: ["dotnet", "test", "DominoPontaDeQuina.sln"]
+
+volumes:
+  nuget:
