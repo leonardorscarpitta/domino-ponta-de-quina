@@ -3,9 +3,11 @@ services:
     build:
       context: .
       target: dev
+      network: host
     user: "${UID:-1000}:${GID:-1000}"
-    ports:
-      - "8080:8080"
+    # Host networking: the app listens on http://localhost:8080 and reaches the external API
+    # even on hosts where the Docker bridge has no outbound access.
+    network_mode: host
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       DOTNET_CLI_HOME: /tmp/dotnet
@@ -22,6 +24,7 @@ services:
     profiles: ["test"]
     image: mcr.microsoft.com/dotnet/sdk:10.0
     working_dir: /src
+    network_mode: host
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       DOTNET_CLI_HOME: /tmp/dotnet

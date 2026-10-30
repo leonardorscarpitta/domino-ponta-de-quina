@@ -13,3 +13,4 @@ Apresentacao_Checkpoint6.pdf
 bin/
 obj/
 data/
+.env.test
