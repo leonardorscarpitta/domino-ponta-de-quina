@@ -1,0 +1,38 @@
+@page
+@model EntrarModel
+@{
+    ViewData["Title"] = "Entrar";
+    ViewData["BodyClass"] = "tela-entrada";
+}
+<section class="entrada">
+    <div class="entrada-capa">
+        <img src="~/img/logo.svg" alt="" width="96" height="96" />
+        <h1>Dominó <span>Ponta de Quina</span></h1>
+        <p>Feche as pontas em múltiplos de 5 e some pontos a cada jogada.</p>
+    </div>
+
+    <div class="cartao">
+        <partial name="Shared/_Mensagens" model="(Model.Sucesso, Model.Erro)" />
+
+        <h2><span class="passo">1</span> Solicitar acesso</h2>
+        <p class="dica">Informe seu e-mail FIAP. A API envia o token para essa caixa de entrada.</p>
+        <form method="post" asp-page-handler="Solicitar" class="formulario">
+            <label for="email-solicitar">E-mail FIAP</label>
+            <input id="email-solicitar" name="Email" type="email" autocomplete="email" required maxlength="254"
+                   placeholder="rm000000@fiap.com.br" value="@Model.Email" />
+            <button class="botao secundario" type="submit">Enviar token por e-mail</button>
+        </form>
+
+        <hr />
+
+        <h2><span class="passo">2</span> Autenticar</h2>
+        <p class="dica">Cole o token recebido. Ele pode ser reutilizado até ser revogado.</p>
+        <form method="post" asp-page-handler="Autenticar" class="formulario">
+            <label for="email-entrar">E-mail FIAP</label>
+            <input id="email-entrar" name="Email" type="email" autocomplete="email" required maxlength="254" value="@Model.Email" />
+            <label for="token">Token</label>
+            <input id="token" name="Token" type="password" autocomplete="off" required maxlength="512" />
+            <button class="botao" type="submit">Entrar</button>
+        </form>
+    </div>
+</section>

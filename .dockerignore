@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+data/
+.env
+.git/
+INSTRUCTIONS.md
+*.pdf

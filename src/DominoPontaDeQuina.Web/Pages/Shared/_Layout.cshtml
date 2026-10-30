@@ -1,0 +1,49 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var csrf = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    var logado = User.Identity?.IsAuthenticated == true;
+}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="@csrf" />
+    <title>@(ViewData["Title"] is string t ? $"{t} · " : "")Dominó Ponta de Quina</title>
+    <link rel="icon" href="~/img/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="@(ViewData["BodyClass"] ?? "")">
+    <div class="tela-pequena" role="alert">
+        <img src="~/img/logo.svg" alt="" width="88" height="88" />
+        <h1>Sua tela é muito pequena</h1>
+        <p>O Dominó Ponta de Quina precisa de uma tela maior para mostrar a mesa.</p>
+        <p class="dica">Jogue em um <strong>tablet</strong> ou <strong>computador</strong>.</p>
+    </div>
+    <header class="topo">
+        <a class="marca" href="/">
+            <img src="~/img/logo.svg" alt="" width="32" height="32" />
+            <span>Dominó <strong>Ponta de Quina</strong></span>
+        </a>
+        @if (logado)
+        {
+            <nav class="menu">
+                <a href="/Perfis">Perfis</a>
+                <a href="/Partidas">Partidas</a>
+                <span class="usuario">
+                    @(User.JogadorNome() is { } nome ? nome : "Sem perfil")
+                    <small>@User.Email()</small>
+                </span>
+                <form method="post" action="/Sair">
+                    <input type="hidden" name="__RequestVerificationToken" value="@csrf" />
+                    <button class="botao fantasma pequeno" type="submit">Sair</button>
+                </form>
+            </nav>
+        }
+    </header>
+    <main class="conteudo">
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
