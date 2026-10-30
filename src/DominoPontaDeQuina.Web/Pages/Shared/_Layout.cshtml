@@ -2,9 +2,10 @@
 @{
     var csrf = Antiforgery.GetAndStoreTokens(Context).RequestToken;
     var logado = User.Identity?.IsAuthenticated == true;
+    var tema = Temas.Resolver(Context.Request.Cookies[Temas.Cookie]);
 }
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="@tema">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -25,6 +26,15 @@
             <img src="~/img/logo.svg" alt="" width="32" height="32" />
             <span>Dominó <strong>Ponta de Quina</strong></span>
         </a>
+        <label class="seletor-tema" title="Tema da mesa">
+            <span>Tema</span>
+            <select id="tema">
+                @foreach (var (id, nome) in Temas.Disponiveis)
+                {
+                    <option value="@id" selected="@(id == tema)">@nome</option>
+                }
+            </select>
+        </label>
         @if (logado)
         {
             <nav class="menu">
@@ -44,6 +54,7 @@
     <main class="conteudo">
         @RenderBody()
     </main>
+    <script type="module" src="~/js/tema.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
