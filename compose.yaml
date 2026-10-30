@@ -33,7 +33,8 @@ services:
     volumes:
       - .:/src
       - nuget:/tmp/nuget
-    command: ["dotnet", "test", "DominoPontaDeQuina.sln"]
+    # Separate build output so tests don't disturb the running dotnet watch.
+    command: ["dotnet", "test", "DominoPontaDeQuina.sln", "--artifacts-path", "/tmp/artifacts"]
 
 volumes:
   nuget:
