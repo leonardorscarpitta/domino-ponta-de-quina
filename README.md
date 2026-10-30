@@ -161,7 +161,7 @@ flowchart LR
         P[Páginas Razor<br/>Entrar · Perfis · Partidas · Mesa]
         M[mesa.js + cena.js<br/>Three.js]
     end
-    subgraph Cliente[.NET 10 · DominoPontaDeQuina.Web]
+    subgraph Cliente[".NET 10 · DominoPontaDeQuina.Web"]
         RP[PageModels]
         BFF["BFF /bff/partidas/{id}/…"]
         EX[ExecutorAcoes]
@@ -197,7 +197,7 @@ sequenceDiagram
         B-->>U: mensagem + VisaoMesa autoritativa
     else regra violada
         A-->>B: 422 ENCAIXE_INVALIDO…
-        B-->>U: mensagem; a mesa não muda
+        B-->>U: mensagem, a mesa não muda
     end
     loop a cada 1,5 s
         U->>B: GET /estado?versao=n
@@ -279,7 +279,7 @@ classDiagram
     }
     class EstrategiaQuina {
         +Decidir(estado, meuJogadorId) Decisao
-        ~MelhorJogada(estado) JogadaPossivel?
+        -MelhorJogada(estado) JogadaPossivel?
     }
     class Decisao {
         <<abstract record>>
