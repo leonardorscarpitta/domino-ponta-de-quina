@@ -1,11 +1,11 @@
 import * as THREE from "/lib/three/three.module.min.js";
+import { formaArredondada, obterTema, TEMA_PADRAO } from "./temas.js";
 
 const L = 2;          // stone length
 const W = 1;          // stone width
 const H = 0.26;       // stone thickness
 const LIMITE_X = 8;   // where a chain arm turns
 const AREA = { x: 8.8, z: 3.9 }; // board area the chain is scaled to fit
-const ROSA = 0xed145b;
 
 const PIPS = {
     0: [],
@@ -18,21 +18,6 @@ const PIPS = {
 };
 
 export const chave = (a, b) => `${Math.min(a, b)}-${Math.max(a, b)}`;
-
-function formaArredondada(largura, altura, raio) {
-    const s = new THREE.Shape();
-    const x = -largura / 2, y = -altura / 2;
-    s.moveTo(x + raio, y);
-    s.lineTo(x + largura - raio, y);
-    s.quadraticCurveTo(x + largura, y, x + largura, y + raio);
-    s.lineTo(x + largura, y + altura - raio);
-    s.quadraticCurveTo(x + largura, y + altura, x + largura - raio, y + altura);
-    s.lineTo(x + raio, y + altura);
-    s.quadraticCurveTo(x, y + altura, x, y + altura - raio);
-    s.lineTo(x, y + raio);
-    s.quadraticCurveTo(x, y, x + raio, y);
-    return s;
-}
 
 function texturaFace(menor, maior) {
     const c = document.createElement("canvas");
@@ -66,57 +51,6 @@ function texturaFace(menor, maior) {
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 8;
-    return t;
-}
-
-function texturaVerso() {
-    const c = document.createElement("canvas");
-    c.width = 256; c.height = 128;
-    const g = c.getContext("2d");
-    g.fillStyle = "#1d1d22";
-    g.fillRect(0, 0, 256, 128);
-    g.strokeStyle = "rgba(255,255,255,0.07)";
-    g.lineWidth = 2;
-    for (let i = -128; i < 256; i += 14) {
-        g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 128, 128); g.stroke();
-        g.beginPath(); g.moveTo(i + 128, 0); g.lineTo(i, 128); g.stroke();
-    }
-    g.strokeStyle = "rgba(237,20,91,0.55)";
-    g.lineWidth = 4;
-    g.strokeRect(8, 8, 240, 112);
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-}
-
-function texturaFeltro() {
-    const c = document.createElement("canvas");
-    c.width = 1024; c.height = 640;
-    const g = c.getContext("2d");
-    const grad = g.createRadialGradient(512, 320, 60, 512, 320, 620);
-    grad.addColorStop(0, "#4a2266");
-    grad.addColorStop(1, "#1a0b26");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 1024, 640);
-    const ruido = g.getImageData(0, 0, 1024, 640);
-    for (let i = 0; i < ruido.data.length; i += 4) {
-        const n = (Math.random() - 0.5) * 14;
-        ruido.data[i] += n; ruido.data[i + 1] += n; ruido.data[i + 2] += n;
-    }
-    g.putImageData(ruido, 0, 0);
-    g.strokeStyle = "#ff1f6d";
-    g.lineWidth = 8;
-    g.beginPath();
-    g.roundRect(34, 34, 956, 572, 150);
-    g.stroke();
-    g.strokeStyle = "rgba(255,201,40,0.55)";
-    g.lineWidth = 3;
-    g.setLineDash([18, 14]);
-    g.beginPath();
-    g.roundRect(52, 52, 920, 536, 134);
-    g.stroke();
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
     return t;
 }
 
@@ -185,7 +119,7 @@ export function layoutCadeia(cadeia, indiceAbertura) {
 }
 
 export class Cena {
-    constructor(canvas, aoClicar) {
+    constructor(canvas, aoClicar, tema = TEMA_PADRAO) {
         this.canvas = canvas;
         this.aoClicar = aoClicar;
         this.pedras = new Map();     // key -> mesh for every face-up stone
@@ -205,12 +139,13 @@ export class Cena {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x12081a);
-        this.scene.fog = new THREE.Fog(0x12081a, 30, 60);
+        this.scene.background = new THREE.Color();
+        this.scene.fog = new THREE.Fog(0x000000, 30, 60);
         this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
 
-        this.#montarAmbiente();
         this.#montarGeometrias();
+        this.ambiente = null;
+        this.setTema(tema);
 
         this.raycaster = new THREE.Raycaster();
         this.ponteiro = new THREE.Vector2();
@@ -219,43 +154,6 @@ export class Cena {
         new ResizeObserver(() => this.#redimensionar()).observe(canvas);
         this.#redimensionar();
         this.renderer.setAnimationLoop(() => this.#quadro());
-    }
-
-    #montarAmbiente() {
-        this.scene.add(new THREE.HemisphereLight(0xffffff, 0x221a20, 0.9));
-        const sol = new THREE.DirectionalLight(0xfff4e6, 2.2);
-        sol.position.set(-6, 18, 9);
-        sol.castShadow = true;
-        sol.shadow.mapSize.set(2048, 2048);
-        Object.assign(sol.shadow.camera, { left: -16, right: 16, top: 12, bottom: -12, near: 1, far: 50 });
-        sol.shadow.bias = -0.0004;
-        this.scene.add(sol);
-        const rosa = new THREE.PointLight(ROSA, 40, 30, 2);
-        rosa.position.set(12, 5, -8);
-        this.scene.add(rosa);
-
-        const feltro = new THREE.Mesh(
-            new THREE.PlaneGeometry(26, 16.25),
-            new THREE.MeshStandardMaterial({ map: texturaFeltro(), roughness: 0.95 }));
-        feltro.rotation.x = -Math.PI / 2;
-        feltro.receiveShadow = true;
-        this.scene.add(feltro);
-
-        const borda = formaArredondada(28, 18.25, 3.4);
-        borda.holes.push(formaArredondada(26, 16.25, 2.6));
-        const madeira = new THREE.Mesh(
-            new THREE.ExtrudeGeometry(borda, { depth: 0.7, bevelEnabled: true, bevelSize: 0.25, bevelThickness: 0.25, bevelSegments: 4, curveSegments: 24 }),
-            new THREE.MeshStandardMaterial({ color: 0x7a3b1c, roughness: 0.35, metalness: 0.15 }));
-        madeira.rotation.x = -Math.PI / 2;
-        madeira.position.y = -0.35;
-        madeira.castShadow = true;
-        madeira.receiveShadow = true;
-        this.scene.add(madeira);
-
-        const chao = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x150a1e, roughness: 1 }));
-        chao.rotation.x = -Math.PI / 2;
-        chao.position.y = -3;
-        this.scene.add(chao);
     }
 
     #montarGeometrias() {
@@ -267,9 +165,37 @@ export class Cena {
         this.geoFace = new THREE.PlaneGeometry(L - 0.2, W - 0.14).rotateX(-Math.PI / 2);
         this.matCorpo = new THREE.MeshStandardMaterial({ color: 0xfff8ea, roughness: 0.3 });
         this.matContorno = new THREE.MeshBasicMaterial({ color: 0x0b0612, side: THREE.BackSide });
-        this.matVerso = new THREE.MeshStandardMaterial({ map: texturaVerso(), roughness: 0.5 });
-        this.matCorpoEscuro = new THREE.MeshStandardMaterial({ color: 0x2a1838, roughness: 0.45 });
-        this.matFantasma = new THREE.MeshBasicMaterial({ color: ROSA, transparent: true, opacity: 0.35, depthWrite: false });
+        this.matVerso = new THREE.MeshStandardMaterial({ roughness: 0.5 });
+        this.matCorpoEscuro = new THREE.MeshStandardMaterial({ roughness: 0.45 });
+        this.matFantasma = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.35, depthWrite: false });
+    }
+
+    /** Swaps the surroundings (table, floor, props, lights) and stone backs without touching the game. */
+    async setTema(id) {
+        const tema = obterTema(id);
+        this.temaAtual = tema;
+        // Canvas textures print text with the display font, so wait for it.
+        await Promise.allSettled([document.fonts.load("64px 'Lilita One'"), document.fonts.load("bold 24px 'Nunito'")]);
+        if (this.temaAtual !== tema) return;
+
+        if (this.ambiente) {
+            this.scene.remove(this.ambiente);
+            this.ambiente.traverse((o) => {
+                o.geometry?.dispose();
+                for (const m of [].concat(o.material ?? [])) { m.map?.dispose(); m.dispose(); }
+            });
+        }
+        this.ambiente = new THREE.Group();
+        tema.montar(this.ambiente);
+        this.scene.add(this.ambiente);
+
+        this.scene.background.setHex(tema.fundo);
+        this.scene.fog.color.setHex(tema.fundo);
+        this.matVerso.map?.dispose();
+        this.matVerso.map = tema.verso();
+        this.matVerso.needsUpdate = true;
+        this.matCorpoEscuro.color.setHex(tema.corpoVerso);
+        this.matFantasma.color.setHex(tema.fantasma);
     }
 
     /** Inverted-hull outline: a slightly bigger back-faced copy drawn in the outline colour. */

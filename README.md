@@ -26,6 +26,8 @@
 - [Como executar](#como-executar)
 - [Configuração](#configuração)
 - [Como jogar](#como-jogar)
+- [Temas](#temas)
+- [Telas suportadas](#telas-suportadas)
 - [Arquitetura](#arquitetura)
 - [Diagrama de classes](#diagrama-de-classes)
 - [Jogador autônomo](#jogador-autônomo)
@@ -123,6 +125,25 @@ Toda configuração vem de variáveis de ambiente (`.env` em desenvolvimento, *s
    clique em uma para jogar. Se ela couber nas duas pontas, escolha o lado (os fantasmas na mesa e os botões mostram os pontos).
    *Comprar* e *Passar* só ficam habilitados quando a API indica essa ação.
 5. **Jogador autônomo** – ligue o interruptor para que o servidor jogue por você. Desligue para retomar o controle.
+
+## Temas
+
+O seletor **Tema** no cabeçalho troca o visual na hora, inclusive com a partida em andamento. A escolha fica salva em um
+cookie de preferência (`domino.tema`, não sensível), validado no servidor, então a página já abre no tema certo.
+
+| Tema | Visual |
+| --- | --- |
+| **Mesa de Poker** (padrão) | Feltro roxo com borda rosa, aro de madeira, pedras com contorno estilo *toon* e interface rosa/dourada |
+| **Mesa de Bar** | Boteco brasileiro: duas mesas plásticas amarelas juntadas, chão de calçadão de Copacabana, garrafas de 600 ml, copos americanos com cerveja, prato de bolinhos, tampinhas, bandeirinhas de festa junina e interface verde e amarela |
+
+As marcas exibidas (“Bar do Quina”, “Cerveja Quina”) são fictícias. Cada tema fica em `wwwroot/js/temas.js`
+(ambiente 3D: luzes, mesa, piso, objetos e verso das pedras) e em um bloco `html[data-tema="…"]` de variáveis em `site.css`.
+Para criar um tema novo, adicione uma entrada em `TEMAS` (JS), em `Ui/Temas.cs` e, se quiser cores próprias, um bloco de variáveis no CSS.
+
+## Telas suportadas
+
+Computadores e **tablets** (retrato e paisagem). Em telas com menos de 700 px de largura ou 520 px de altura — celulares
+em qualquer orientação — o jogo mostra o aviso **“Sua tela é muito pequena”**, porque a mesa 3D não cabe de forma jogável.
 
 ## Arquitetura
 
@@ -392,7 +413,7 @@ material da disciplina — `0 Aguardar`, `1 JogarAbertura`, `2 Jogar`, `3 Compra
 
 ## Testes automatizados
 
-`tests/DominoPontaDeQuina.Tests` (xUnit) — 60 testes:
+`tests/DominoPontaDeQuina.Tests` (xUnit):
 
 | Suíte | O que cobre |
 | --- | --- |
@@ -417,7 +438,8 @@ material da disciplina — `0 Aguardar`, `1 JogarAbertura`, `2 Jogar`, `3 Compra
 │   ├── Security/                    # sessão (cookie) e cofre de chaves de ativação
 │   ├── Bff/                         # endpoints JSON usados pela mesa
 │   ├── Pages/                       # Razor Pages (Entrar, Perfis, Partidas, Partida, Sair)
-│   └── wwwroot/                     # css, fontes, logo, Three.js e scripts da mesa (cena.js, mesa.js)
+│   ├── Ui/                          # temas disponíveis
+│   └── wwwroot/                     # css, fontes, logo, Three.js e scripts (cena.js, mesa.js, temas.js, tema.js)
 └── tests/DominoPontaDeQuina.Tests   # testes xUnit
 ```
 

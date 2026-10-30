@@ -18,7 +18,8 @@ let selecionada = null;
 let inicioVez = null;
 let timerMensagem = null;
 
-const cena = new Cena($("cena"), aoClicarCena);
+const cena = new Cena($("cena"), aoClicarCena, document.documentElement.dataset.tema);
+window.addEventListener("tema-alterado", (e) => cena.setTema(e.detail));
 
 function uuid() {
     if (crypto.randomUUID) return crypto.randomUUID();

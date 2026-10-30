@@ -60,6 +60,21 @@ public sealed class IntegracaoHttpTests : IClassFixture<WebApplicationFactory<Pr
         Assert.Equal(HttpStatusCode.BadRequest, resposta.StatusCode);
     }
 
+    [Theory]
+    [InlineData("bar", "bar")]
+    [InlineData("poker", "poker")]
+    [InlineData("\"><script>", "poker")]
+    public async Task Tema_vem_do_cookie_somente_se_for_conhecido(string cookie, string esperado)
+    {
+        var requisicao = new HttpRequestMessage(HttpMethod.Get, "/Entrar");
+        requisicao.Headers.Add("Cookie", $"domino.tema={Uri.EscapeDataString(cookie)}");
+
+        var html = await (await Cliente().SendAsync(requisicao)).Content.ReadAsStringAsync();
+
+        Assert.Contains($"data-tema=\"{esperado}\"", html);
+        Assert.DoesNotContain("<script>", html.Replace("<script type=\"module\"", ""));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_dados)) Directory.Delete(_dados, recursive: true);
