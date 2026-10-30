@@ -85,6 +85,10 @@ public sealed class DominoApiClient(HttpClient http, ILogger<DominoApiClient> lo
         return await LerAsync<EstadoPartidaParticipante>(resposta, ct);
     }
 
+    /// <summary>Public view (no hands) available to any authenticated user, even non-participants.</summary>
+    public Task<EstadoPartidaObservador> VisualizarAsync(ApiCredenciais cred, Guid partidaId, CancellationToken ct = default) =>
+        EnviarAsync<EstadoPartidaObservador>(HttpMethod.Get, $"api/partidas/{partidaId}/visualizar", cred, null, ct);
+
     public Task<ResultadoHistoricoPartida> ObterResultadoAsync(ApiCredenciais cred, Guid partidaId, Guid jogadorId, CancellationToken ct = default) =>
         EnviarAsync<ResultadoHistoricoPartida>(HttpMethod.Get, $"api/partidas/{partidaId}/resultado?jogadorId={jogadorId}", cred, null, ct);
 

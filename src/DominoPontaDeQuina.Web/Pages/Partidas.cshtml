@@ -58,10 +58,11 @@
 
         <hr />
         <h2>Entrar por código</h2>
-        <form method="get" action="/Partida" class="formulario" id="form-codigo">
+        <form method="post" asp-page-handler="Entrar" class="formulario">
             <label for="codigo">Código da partida</label>
-            <input id="codigo" name="id" required pattern="[0-9a-fA-F\-]{36}" placeholder="00000000-0000-0000-0000-000000000000" />
-            <button class="botao secundario" type="submit">Abrir mesa</button>
+            <input id="codigo" name="partidaId" required pattern="\s*[0-9a-fA-F\-]{36}\s*" autocomplete="off"
+                   placeholder="00000000-0000-0000-0000-000000000000" />
+            <button class="botao secundario" type="submit">Entrar na mesa</button>
         </form>
 
         @if (Model.Minhas.Count > 0)

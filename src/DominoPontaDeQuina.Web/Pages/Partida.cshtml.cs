@@ -15,6 +15,8 @@ public sealed class PartidaModel(DominoApiClient api, CofreAtivacoes cofre, Gere
     };
 
     public VisaoMesa? Visao { get; private set; }
+    /// <summary>Set when this profile is not in the match yet but can still join it.</summary>
+    public EstadoPartidaObservador? Convite { get; private set; }
     public string EstadoJson { get; private set; } = "{}";
     public string? Erro { get; private set; }
 
@@ -41,6 +43,10 @@ public sealed class PartidaModel(DominoApiClient api, CofreAtivacoes cofre, Gere
         {
             return await SessaoExpiradaAsync();
         }
+        catch (DominoApiException ex) when (ex.Status == System.Net.HttpStatusCode.NotFound)
+        {
+            await PrepararConviteAsync(id.Value, ct);
+        }
         catch (DominoApiException ex)
         {
             Erro = ex.MensagemAmigavel;
@@ -50,5 +56,21 @@ public sealed class PartidaModel(DominoApiClient api, CofreAtivacoes cofre, Gere
             Erro = "A API do jogo está indisponível no momento.";
         }
         return Page();
+    }
+
+    private async Task PrepararConviteAsync(Guid partidaId, CancellationToken ct)
+    {
+        try
+        {
+            var publico = await api.VisualizarAsync(Credenciais, partidaId, ct);
+            if (publico.Situacao == SituacaoPartida.AguardandoInicio && (publico.Participantes?.Count ?? 0) < 2)
+                Convite = publico;
+            else
+                Erro = "Você não participa desta partida e ela já não aceita novos jogadores.";
+        }
+        catch (DominoApiException)
+        {
+            Erro = "Partida não encontrada. Confira o código.";
+        }
     }
 }

@@ -69,6 +69,16 @@ public sealed record EstadoPartidaParticipante(
     PecaPartida? PedraAberturaObrigatoria,
     Guid ParticipacaoId);
 
+public sealed record EstadoPartidaObservador(
+    Guid PartidaId,
+    long VersaoEstado,
+    SituacaoPartida Situacao,
+    int NumeroRodada,
+    Guid? JogadorDoTurnoId,
+    IReadOnlyList<PecaPartida>? Tabuleiro,
+    IReadOnlyList<ResumoParticipantePartida>? Participantes,
+    Guid? VencedorId);
+
 public sealed record ConfirmacaoAcaoPartida(Guid ChaveIdempotencia, bool AcaoIdempotente, EstadoPartidaParticipante? Estado);
 
 public sealed record EventoHistoricoPartida(

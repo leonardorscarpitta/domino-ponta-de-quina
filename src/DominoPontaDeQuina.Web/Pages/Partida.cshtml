@@ -8,11 +8,31 @@
 }
 @if (v is null)
 {
-    <section class="cartao centro">
-        <h1>Mesa indisponível</h1>
-        <partial name="Shared/_Mensagens" model="((string?)null, Model.Erro)" />
-        <a class="botao" href="/Partidas">Voltar às partidas</a>
-    </section>
+    @if (Model.Convite is { } convite)
+    {
+        <section class="cartao centro">
+            <div class="assento-vazio" aria-hidden="true"></div>
+            <h1>Mesa aguardando jogador</h1>
+            <p class="dica">
+                Criada por <strong>@(convite.Participantes?.FirstOrDefault()?.Nome ?? "outro jogador")</strong>.
+                Você está usando o perfil <strong>@User.JogadorNome()</strong>.
+            </p>
+            <form method="post" action="/Partidas?handler=Entrar">
+                <input type="hidden" name="partidaId" value="@convite.PartidaId" />
+                <input type="hidden" name="versao" value="@convite.VersaoEstado" />
+                <button class="botao" type="submit">Entrar nesta mesa ›</button>
+            </form>
+            <a class="botao fantasma pequeno" href="/Partidas">Voltar às partidas</a>
+        </section>
+    }
+    else
+    {
+        <section class="cartao centro">
+            <h1>Mesa indisponível</h1>
+            <partial name="Shared/_Mensagens" model="((string?)null, Model.Erro)" />
+            <a class="botao" href="/Partidas">Voltar às partidas</a>
+        </section>
+    }
 }
 else
 {

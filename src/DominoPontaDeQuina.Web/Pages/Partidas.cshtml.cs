@@ -51,12 +51,25 @@ public sealed class PartidasModel(DominoApiClient api, CofreAtivacoes cofre) : P
         });
     }
 
-    public async Task<IActionResult> OnPostEntrarAsync([FromForm] Guid partidaId, [FromForm] long versao, CancellationToken ct)
+    /// <summary>
+    /// Joins as the second participant. Without a known version (join by code or from the table page),
+    /// the current one is read from the public observer view first.
+    /// </summary>
+    public async Task<IActionResult> OnPostEntrarAsync([FromForm] Guid partidaId, [FromForm] long? versao, CancellationToken ct)
     {
         if (await CarregarJogadorAsync() is { } redirecionar) return redirecionar;
+        if (partidaId == Guid.Empty)
+        {
+            Erro = "Informe um código de partida válido.";
+            return RedirectToPage();
+        }
+        if ((await Cofre.ListarPartidasAsync(User.UsuarioId()!, JogadorId)).Contains(partidaId))
+            return Redirect($"/Partida/{partidaId}");
+
         return await ExecutarAsync(async () =>
         {
-            await api.EntrarAsync(Credenciais, partidaId, new AcaoRequest(versao, Guid.NewGuid(), JogadorId), ct);
+            var versaoEsperada = versao ?? (await api.VisualizarAsync(Credenciais, partidaId, ct)).VersaoEstado;
+            await api.EntrarAsync(Credenciais, partidaId, new AcaoRequest(versaoEsperada, Guid.NewGuid(), JogadorId), ct);
             return partidaId;
         });
     }
@@ -75,7 +88,10 @@ public sealed class PartidasModel(DominoApiClient api, CofreAtivacoes cofre) : P
         }
         catch (DominoApiException ex)
         {
-            Erro = ex.MensagemAmigavel;
+            Erro = ex.Codigo == "ESTADO_INVALIDO"
+                ? "A API recusou: a mesa já começou ou está cheia, ou o perfil \"" + User.JogadorNome() +
+                  "\" provavelmente já está em outra partida em aberto. Termine-a ou use outro perfil."
+                : ex.MensagemAmigavel;
             return RedirectToPage();
         }
         catch (HttpRequestException)

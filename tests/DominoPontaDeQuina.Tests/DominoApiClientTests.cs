@@ -102,6 +102,19 @@ public class DominoApiClientTests
     }
 
     [Fact]
+    public async Task Visualizar_le_a_visao_publica_da_partida()
+    {
+        var partida = Guid.NewGuid();
+        var (cliente, handler) = Criar(_ => HandlerFalso.Json(HttpStatusCode.OK,
+            new EstadoPartidaObservador(partida, 3, SituacaoPartida.AguardandoInicio, 0, null, [], [], null)));
+
+        var publico = await cliente.VisualizarAsync(Cred, partida);
+
+        Assert.Equal(3, publico.VersaoEstado);
+        Assert.Equal($"/api/partidas/{partida}/visualizar", handler.Recebidas[0].Requisicao.RequestUri!.AbsolutePath);
+    }
+
+    [Fact]
     public async Task Solicitar_token_com_email_recusado_retorna_falso()
     {
         var (cliente, _) = Criar(_ => new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StringContent("false") });
