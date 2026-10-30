@@ -294,5 +294,8 @@ async function consultar() {
         setTimeout(consultar, document.hidden ? INTERVALO_OCULTO : INTERVALO_CONSULTA);
 }
 
+// On narrow screens the history panel would cover the board, so it starts collapsed.
+if (window.innerWidth < 1280) $("painel-historico").open = false;
+
 render(null);
 setTimeout(consultar, INTERVALO_CONSULTA);

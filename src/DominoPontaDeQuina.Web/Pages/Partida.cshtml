@@ -84,15 +84,15 @@ else
                 <button class="botao escuro" id="btn-passar" type="button" @(v.MinhaVez && v.ProximaAcao == ProximaAcaoPartida.Passar ? "" : "disabled")>Passar</button>
             </div>
 
-            <aside class="hud-historico">
-                <h3>Histórico</h3>
+            <details class="hud-historico" id="painel-historico" open>
+                <summary><h3>Histórico</h3></summary>
                 <ol id="historico">
                     @foreach (var e in v.Eventos)
                     {
                         <li class="@(e.SouEu ? "meu" : "")"><b>@e.Jogador</b> @e.Texto @if (e.Pontos > 0) { <em>+@e.Pontos</em> }</li>
                     }
                 </ol>
-            </aside>
+            </details>
         </div>
 
         <div class="sobreposicao" id="espera" @(v.Situacao == SituacaoPartida.AguardandoInicio ? "" : "hidden")>
