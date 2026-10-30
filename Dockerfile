@@ -22,7 +22,10 @@ RUN dotnet test -c Release --no-restore \
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+# TLS is terminated by the reverse proxy in front of the container; trust its X-Forwarded-* headers
+# so the app knows the original request was HTTPS (required for the Secure cookies).
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080 \
+    ASPNETCORE_FORWARDEDHEADERS_ENABLED=true \
     Armazenamento__Diretorio=/app/data
 COPY --from=build /app .
 RUN mkdir -p /app/data && chown -R app:app /app/data

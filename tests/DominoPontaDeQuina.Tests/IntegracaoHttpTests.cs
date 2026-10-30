@@ -75,6 +75,26 @@ public sealed class IntegracaoHttpTests : IClassFixture<WebApplicationFactory<Pr
         Assert.DoesNotContain("<script>", html.Replace("<script type=\"module\"", ""));
     }
 
+    [Fact]
+    public async Task Producao_recusa_http_e_aceita_https_vindo_do_proxy()
+    {
+        using var producao = _fabrica.WithWebHostBuilder(b =>
+        {
+            b.UseEnvironment(Environments.Production);
+            b.UseSetting("FORWARDEDHEADERS_ENABLED", "true");
+        });
+        var cliente = producao.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        var http = await cliente.GetAsync("/Entrar");
+        var viaProxy = new HttpRequestMessage(HttpMethod.Get, "/Entrar");
+        viaProxy.Headers.Add("X-Forwarded-Proto", "https");
+        var https = await cliente.SendAsync(viaProxy);
+
+        Assert.Equal(HttpStatusCode.BadRequest, http.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, https.StatusCode);
+        Assert.Contains("secure", https.Headers.GetValues("Set-Cookie").Single(), StringComparison.OrdinalIgnoreCase);
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_dados)) Directory.Delete(_dados, recursive: true);

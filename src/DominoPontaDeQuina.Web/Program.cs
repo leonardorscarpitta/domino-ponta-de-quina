@@ -84,7 +84,14 @@ else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
-    app.UseHttpsRedirection();
+    // TLS ends at the reverse proxy, so there is no HTTPS port to redirect to:
+    // refuse plain HTTP outright instead of failing later on the Secure cookies.
+    app.Use(async (ctx, next) =>
+    {
+        if (ctx.Request.IsHttps) { await next(); return; }
+        ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await ctx.Response.WriteAsync("HTTPS obrigatório. Acesse o jogo por https://");
+    });
 }
 
 // dotnet watch injects a websocket for browser refresh; allow it only while developing.
