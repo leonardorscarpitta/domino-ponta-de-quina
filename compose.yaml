@@ -1,0 +1,40 @@
+services:
+  web:
+    build:
+      context: .
+      target: dev
+      network: host
+    user: "${UID:-1000}:${GID:-1000}"
+    # Host networking: the app listens on http://localhost:8080 and reaches the external API
+    # even on hosts where the Docker bridge has no outbound access.
+    network_mode: host
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_CLI_HOME: /tmp/dotnet
+      NUGET_PACKAGES: /tmp/nuget
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - .:/src
+      - nuget:/tmp/nuget
+      - ./data:/src/data
+
+  test:
+    profiles: ["test"]
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /src
+    network_mode: host
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      DOTNET_CLI_HOME: /tmp/dotnet
+      NUGET_PACKAGES: /tmp/nuget
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    volumes:
+      - .:/src
+      - nuget:/tmp/nuget
+    # Separate build output so tests don't disturb the running dotnet watch.
+    command: ["dotnet", "test", "DominoPontaDeQuina.sln", "--artifacts-path", "/tmp/artifacts"]
+
+volumes:
+  nuget:

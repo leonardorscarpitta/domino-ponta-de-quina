@@ -1,0 +1,14 @@
+@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Erro";
+}
+<section class="cartao centro">
+    <h1>Algo deu errado</h1>
+    <p>Não foi possível concluir a operação. Tente novamente em instantes.</p>
+    @if (Model.RequestId is not null)
+    {
+        <p class="dica">Código do erro: <code>@Model.RequestId</code></p>
+    }
+    <a class="botao" href="/">Voltar ao início</a>
+</section>

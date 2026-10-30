@@ -8,3 +8,9 @@ CLAUDE.md
 .claude/
 *.log
 .DS_Store
+INSTRUCTIONS.md
+Apresentacao_Checkpoint6.pdf
+bin/
+obj/
+data/
+.env.test
