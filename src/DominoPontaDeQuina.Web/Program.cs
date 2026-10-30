@@ -87,11 +87,13 @@ else
     app.UseHttpsRedirection();
 }
 
+// dotnet watch injects a websocket for browser refresh; allow it only while developing.
+var connectSrc = app.Environment.IsDevelopment() ? "'self' ws://localhost:* wss://localhost:*" : "'self'";
 app.Use(async (ctx, next) =>
 {
     var h = ctx.Response.Headers;
     h.ContentSecurityPolicy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; " +
-                              "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+                              $"connect-src {connectSrc}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
     h.XContentTypeOptions = "nosniff";
     h.XFrameOptions = "DENY";
     h["Referrer-Policy"] = "no-referrer";

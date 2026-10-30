@@ -4,7 +4,7 @@ const L = 2;          // stone length
 const W = 1;          // stone width
 const H = 0.26;       // stone thickness
 const LIMITE_X = 8;   // where a chain arm turns
-const AREA = { x: 9.2, z: 4.6 }; // board area the chain is scaled to fit
+const AREA = { x: 8.8, z: 3.9 }; // board area the chain is scaled to fit
 const ROSA = 0xed145b;
 
 const PIPS = {
@@ -94,8 +94,8 @@ function texturaFeltro() {
     c.width = 1024; c.height = 640;
     const g = c.getContext("2d");
     const grad = g.createRadialGradient(512, 320, 60, 512, 320, 620);
-    grad.addColorStop(0, "#26262c");
-    grad.addColorStop(1, "#0f0f12");
+    grad.addColorStop(0, "#4a2266");
+    grad.addColorStop(1, "#1a0b26");
     g.fillStyle = grad;
     g.fillRect(0, 0, 1024, 640);
     const ruido = g.getImageData(0, 0, 1024, 640);
@@ -104,10 +104,16 @@ function texturaFeltro() {
         ruido.data[i] += n; ruido.data[i + 1] += n; ruido.data[i + 2] += n;
     }
     g.putImageData(ruido, 0, 0);
-    g.strokeStyle = "rgba(237,20,91,0.8)";
-    g.lineWidth = 4;
+    g.strokeStyle = "#ff1f6d";
+    g.lineWidth = 8;
     g.beginPath();
     g.roundRect(34, 34, 956, 572, 150);
+    g.stroke();
+    g.strokeStyle = "rgba(255,201,40,0.55)";
+    g.lineWidth = 3;
+    g.setLineDash([18, 14]);
+    g.beginPath();
+    g.roundRect(52, 52, 920, 536, 134);
     g.stroke();
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
@@ -201,8 +207,8 @@ export class Cena {
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x0b0b0e);
-        this.scene.fog = new THREE.Fog(0x0b0b0e, 30, 60);
+        this.scene.background = new THREE.Color(0x12081a);
+        this.scene.fog = new THREE.Fog(0x12081a, 30, 60);
         this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
 
         this.#montarAmbiente();
@@ -241,14 +247,14 @@ export class Cena {
         borda.holes.push(formaArredondada(26, 16.25, 2.6));
         const madeira = new THREE.Mesh(
             new THREE.ExtrudeGeometry(borda, { depth: 0.7, bevelEnabled: true, bevelSize: 0.25, bevelThickness: 0.25, bevelSegments: 4, curveSegments: 24 }),
-            new THREE.MeshStandardMaterial({ color: 0x4a2c1d, roughness: 0.55, metalness: 0.1 }));
+            new THREE.MeshStandardMaterial({ color: 0x7a3b1c, roughness: 0.35, metalness: 0.15 }));
         madeira.rotation.x = -Math.PI / 2;
         madeira.position.y = -0.35;
         madeira.castShadow = true;
         madeira.receiveShadow = true;
         this.scene.add(madeira);
 
-        const chao = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 1 }));
+        const chao = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0x150a1e, roughness: 1 }));
         chao.rotation.x = -Math.PI / 2;
         chao.position.y = -3;
         this.scene.add(chao);
@@ -261,12 +267,21 @@ export class Cena {
         corpo.translate(0, 0.04, 0);
         this.geoCorpo = corpo;
         this.geoFace = new THREE.PlaneGeometry(L - 0.2, W - 0.14).rotateX(-Math.PI / 2);
-        this.matCorpo = new THREE.MeshStandardMaterial({ color: 0xf1ebdd, roughness: 0.38 });
+        this.matCorpo = new THREE.MeshStandardMaterial({ color: 0xfff8ea, roughness: 0.3 });
+        this.matContorno = new THREE.MeshBasicMaterial({ color: 0x0b0612, side: THREE.BackSide });
         this.matVerso = new THREE.MeshStandardMaterial({ map: texturaVerso(), roughness: 0.5 });
-        this.matCorpoEscuro = new THREE.MeshStandardMaterial({ color: 0x18181c, roughness: 0.5 });
+        this.matCorpoEscuro = new THREE.MeshStandardMaterial({ color: 0x2a1838, roughness: 0.45 });
         this.geoBrilho = new THREE.PlaneGeometry(L + 0.45, W + 0.45).rotateX(-Math.PI / 2);
         this.matBrilho = new THREE.MeshBasicMaterial({ color: ROSA, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
         this.matFantasma = new THREE.MeshBasicMaterial({ color: ROSA, transparent: true, opacity: 0.35, depthWrite: false });
+    }
+
+    /** Inverted-hull outline: a slightly bigger back-faced copy drawn in the outline colour. */
+    #contorno() {
+        const c = new THREE.Mesh(this.geoCorpo, this.matContorno);
+        c.scale.set(1.035, 1.15, 1.07);
+        c.position.y = -0.015;
+        return c;
     }
 
     #criarPedra(a, b) {
@@ -278,7 +293,7 @@ export class Cena {
         corpo.receiveShadow = true;
         const face = new THREE.Mesh(this.geoFace, new THREE.MeshStandardMaterial({ map: this.texturas.get(k), roughness: 0.4 }));
         face.position.y = H + 0.004;
-        grupo.add(corpo, face);
+        grupo.add(corpo, face, this.#contorno());
         grupo.userData = { chave: k, menor: Math.min(a, b), alvo: null, face };
         return grupo;
     }
@@ -289,7 +304,7 @@ export class Cena {
         corpo.castShadow = true;
         const face = new THREE.Mesh(this.geoFace, this.matVerso);
         face.position.y = H + 0.004;
-        grupo.add(corpo, face);
+        grupo.add(corpo, face, this.#contorno());
         grupo.userData = { alvo: null };
         return grupo;
     }
@@ -347,7 +362,7 @@ export class Cena {
                 this.scene.add(mesh);
                 this.pedras.set(k, mesh);
             }
-            mesh.userData.alvo = Cena.#alvoEmPe((i - (n - 1) / 2) * espaco, 7.1);
+            mesh.userData.alvo = Cena.#alvoEmPe((i - (n - 1) / 2) * espaco, 5.9);
             mesh.userData.naMao = true;
             mesh.userData.indiceMao = i;
         });
@@ -377,7 +392,7 @@ export class Cena {
         }
         const espaco = Math.min(1.2, 15 / Math.max(qtd, 1));
         this.versos.forEach((v, i) => {
-            v.userData.alvo = Cena.#alvoPlano((i - (qtd - 1) / 2) * espaco, -6.9, Math.PI / 2, 1);
+            v.userData.alvo = Cena.#alvoPlano((i - (qtd - 1) / 2) * espaco, -5.5, Math.PI / 2, 0.85);
         });
     }
 
@@ -392,7 +407,7 @@ export class Cena {
         }
         this.cava.forEach((v, i) => {
             const camada = Math.floor(i / 4), lugar = i % 4;
-            v.userData.alvo = Cena.#alvoPlano(-11.3 + (lugar % 2) * 1.1, -4.6 + Math.floor(lugar / 2) * 2.1, Math.PI / 2 + (camada % 2) * 0.08, 0.9, camada * H * 0.9);
+            v.userData.alvo = Cena.#alvoPlano(-10.6 + (lugar % 2) * 1.05, -1.2 + Math.floor(lugar / 2) * 2, Math.PI / 2 + (camada % 2) * 0.08, 0.85, camada * H * 0.85);
         });
     }
 
@@ -405,7 +420,7 @@ export class Cena {
             const mesh = this.pedras.get(k);
             if (!mesh) continue;
             const brilho = new THREE.Mesh(this.geoBrilho, this.matBrilho);
-            brilho.position.y = -0.02;
+            brilho.position.y = 0.012;
             mesh.add(brilho);
             this.brilhos.set(k, brilho);
         }
@@ -414,7 +429,7 @@ export class Cena {
                 const p = visao.cadeia[i];
                 const mesh = this.pedras.get(chave(p.valorA, p.valorB));
                 const brilho = new THREE.Mesh(this.geoBrilho, this.matBrilho);
-                brilho.position.y = -0.02;
+                brilho.position.y = 0.012;
                 mesh.add(brilho);
                 this.brilhos.set(`ponta-${i}`, brilho);
             }
@@ -450,7 +465,7 @@ export class Cena {
         this.camera.aspect = aspecto;
         const recuo = Math.max(1, 1.7 / aspecto);
         this.camera.position.set(0, 19.5 * recuo, 12.5 * recuo);
-        this.camera.lookAt(0, 0, 1.3);
+        this.camera.lookAt(0, 0, 0.9);
         this.camera.updateProjectionMatrix();
     }
 

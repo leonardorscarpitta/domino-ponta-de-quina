@@ -97,11 +97,35 @@ function render(anterior) {
 
 function anunciar(anterior) {
     if (!anterior) return;
-    if (visao.rodada > anterior.rodada) mensagem(`Rodada ${visao.rodada}: novas pedras distribuídas.`, "info", 4000);
+    if (visao.rodada > anterior.rodada) mensagem(`Rodada ${visao.rodada}: novas pedras distribuídas!`, "info", 4000);
     const ganhoEu = (visao.eu?.pontuacao ?? 0) - (anterior.eu?.pontuacao ?? 0);
     const ganhoOp = (visao.oponente?.pontuacao ?? 0) - (anterior.oponente?.pontuacao ?? 0);
-    if (ganhoEu > 0) mensagem(`Quina! +${ganhoEu} ponto${ganhoEu > 1 ? "s" : ""} para você`, "ponto");
-    else if (ganhoOp > 0) mensagem(`${visao.oponente?.nome ?? "Oponente"} marcou +${ganhoOp}`, "info");
+    if (ganhoEu > 0) {
+        popPontos(ganhoEu, "QUINA!", false);
+        saltar("eu-pontos");
+    } else if (ganhoOp > 0) {
+        popPontos(ganhoOp, visao.oponente?.nome ?? "Oponente", true);
+        saltar("oponente-pontos");
+    }
+}
+
+function popPontos(pontos, rotulo, oponente) {
+    const pop = document.createElement("div");
+    pop.className = `pop-pontos${oponente ? " oponente" : ""}`;
+    const valor = document.createElement("span");
+    valor.textContent = `+${pontos}`;
+    const legenda = document.createElement("small");
+    legenda.textContent = rotulo;
+    pop.append(valor, legenda);
+    raiz.append(pop);
+    pop.addEventListener("animationend", (e) => { if (e.target === pop) pop.remove(); });
+}
+
+function saltar(nome) {
+    const el = campo(nome);
+    el.classList.remove("saltar");
+    void el.offsetWidth;
+    el.classList.add("saltar");
 }
 
 function atualizarRelogio(anterior) {
