@@ -96,9 +96,13 @@ docker build --network host --target final -t domino-ponta-de-quina .
 docker run -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Production -v domino-dados:/app/data domino-ponta-de-quina
 ```
 
+> **Produção exige HTTPS na frente do app.** A imagem escuta HTTP na porta 8080 e espera um proxy reverso com TLS
+> (Nginx, Traefik, Azure App Service…) que envie `X-Forwarded-Proto: https`. Ela já vem com
+> `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, então **exponha a porta 8080 somente para o proxy** — nunca diretamente
+> para a internet — e acesse sempre por `https://`. Acesso direto por `http://` em produção é recusado, porque os cookies são `Secure`.
+>
 > Os containers de desenvolvimento usam `network_mode: host`. Assim o app fica em `localhost:8080` e alcança a API externa
 > mesmo em máquinas onde a rede bridge do Docker não tem saída para a internet.
-> Em produção sem HTTPS terminado no próprio app, publique atrás de um proxy reverso com TLS.
 
 ## Configuração
 
@@ -410,6 +414,10 @@ material da disciplina — `0 Aguardar`, `1 JogarAbertura`, `2 Jogar`, `3 Compra
 - **Validação de entrada**: e-mail restrito a `@fiap.com.br`, nome 1–150, pontuação alvo em lista fechada, valores de pedra 0–6, rotas com `Guid`.
 - **Rate limiting** na tela de entrada (30 req / 10 min por IP), complementando o limite da própria API.
 - Imagem de produção roda como usuário `app` (não root).
+- **Pendente para produção real:** as chaves do Data Protection ficam no mesmo volume, sem cifragem própria
+  (o ASP.NET avisa *No XML encryptor configured*). Quem obtiver o volume inteiro consegue decifrar as chaves de ativação.
+  Em um ambiente de produção, proteja as chaves com certificado ou cofre (`ProtectKeysWithCertificate`, Azure Key Vault).
+  Para o escopo do trabalho, o volume é tratado como segredo.
 
 ## Testes automatizados
 
