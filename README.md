@@ -453,7 +453,7 @@ material da disciplina — `0 Aguardar`, `1 JogarAbertura`, `2 Jogar`, `3 Compra
 
 ## Convenções do projeto
 
-- **Git flow**: `master` (entregas), `develop` (integração), `feat/*`, `bugfix/*`, `release/vX.Y.Z`, `hotfix/*`.
+- **Git flow**: `main` (entregas), `develop` (integração), `feat/*`, `bugfix/*`, `release/vX.Y.Z`, `hotfix/*`.
 - **Conventional Commits** (`feat:`, `fix:`, `test:`, `docs:`, `build:`, `style:` …).
 - Código e domínio em português, alinhados ao vocabulário da API (`Partida`, `Pedra`, `Ponta`, `Cava`).
 - Desenvolvimento sempre em Docker; nada é instalado na máquina.
