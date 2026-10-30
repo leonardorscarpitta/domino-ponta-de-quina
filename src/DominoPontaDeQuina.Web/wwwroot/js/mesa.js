@@ -43,10 +43,7 @@ function controlesAtivos() {
 
 function render(anterior) {
     const ativo = controlesAtivos();
-    cena.aplicar(visao, {
-        jogaveis: ativo ? visao.jogadas.map((j) => chave(j.valorA, j.valorB)) : [],
-        interativo: ativo
-    });
+    cena.aplicar(visao, { interativo: ativo });
 
     const eu = visao.eu, op = visao.oponente;
     campo("eu-nome").textContent = eu?.nome ?? "Você";
@@ -220,7 +217,11 @@ function aoClicarCena(alvo) {
 
     const opcoes = visao.jogadas.filter((j) => chave(j.valorA, j.valorB) === alvo.chave);
     if (opcoes.length === 0) {
-        mensagem("Essa pedra não encaixa em nenhuma ponta.", "erro");
+        const pontas = visao.pontas ? ` (pontas ${visao.pontas.esquerda} e ${visao.pontas.direita})` : "";
+        const dica = visao.jogadas.length === 0
+            ? visao.proximaAcao === Acao.Passar ? " Nenhuma pedra serve: passe a vez." : " Nenhuma pedra serve: compre da cava."
+            : "";
+        mensagem(`Essa pedra não encaixa em nenhuma ponta${pontas}.${dica}`, "erro");
         return;
     }
     const pontasIguais = visao.pontas && visao.pontas.esquerda === visao.pontas.direita;

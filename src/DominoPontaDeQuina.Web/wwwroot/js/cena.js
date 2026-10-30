@@ -192,8 +192,6 @@ export class Cena {
         this.versos = [];            // opponent hand
         this.cava = [];              // boneyard pile
         this.fantasmas = [];         // side choice markers
-        this.brilhos = new Map();    // key -> glow plane
-        this.jogaveis = new Set();
         this.interativo = false;
         this.hover = null;
         this.texturas = new Map();
@@ -271,8 +269,6 @@ export class Cena {
         this.matContorno = new THREE.MeshBasicMaterial({ color: 0x0b0612, side: THREE.BackSide });
         this.matVerso = new THREE.MeshStandardMaterial({ map: texturaVerso(), roughness: 0.5 });
         this.matCorpoEscuro = new THREE.MeshStandardMaterial({ color: 0x2a1838, roughness: 0.45 });
-        this.geoBrilho = new THREE.PlaneGeometry(L + 0.45, W + 0.45).rotateX(-Math.PI / 2);
-        this.matBrilho = new THREE.MeshBasicMaterial({ color: ROSA, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
         this.matFantasma = new THREE.MeshBasicMaterial({ color: ROSA, transparent: true, opacity: 0.35, depthWrite: false });
     }
 
@@ -376,9 +372,7 @@ export class Cena {
 
         this.#sincronizarVersos(visao.oponente?.pedras ?? 0);
         this.#sincronizarCava(visao.cava);
-        this.jogaveis = new Set(opcoes.jogaveis);
         this.interativo = opcoes.interativo;
-        this.#atualizarBrilhos(visao, pos, escala);
         this.esconderFantasmas();
     }
 
@@ -409,31 +403,6 @@ export class Cena {
             const camada = Math.floor(i / 4), lugar = i % 4;
             v.userData.alvo = Cena.#alvoPlano(-10.6 + (lugar % 2) * 1.05, -1.2 + Math.floor(lugar / 2) * 2, Math.PI / 2 + (camada % 2) * 0.08, 0.85, camada * H * 0.85);
         });
-    }
-
-    #atualizarBrilhos(visao, pos, escala) {
-        for (const b of this.brilhos.values()) b.parent?.remove(b);
-        this.brilhos.clear();
-        if (!this.interativo) return;
-
-        for (const k of this.jogaveis) {
-            const mesh = this.pedras.get(k);
-            if (!mesh) continue;
-            const brilho = new THREE.Mesh(this.geoBrilho, this.matBrilho);
-            brilho.position.y = 0.012;
-            mesh.add(brilho);
-            this.brilhos.set(k, brilho);
-        }
-        if (visao.cadeia.length > 0) {
-            for (const i of new Set([0, visao.cadeia.length - 1])) {
-                const p = visao.cadeia[i];
-                const mesh = this.pedras.get(chave(p.valorA, p.valorB));
-                const brilho = new THREE.Mesh(this.geoBrilho, this.matBrilho);
-                brilho.position.y = 0.012;
-                mesh.add(brilho);
-                this.brilhos.set(`ponta-${i}`, brilho);
-            }
-        }
     }
 
     /** Shows translucent stones where each side would receive the selected stone. */
@@ -487,7 +456,7 @@ export class Cena {
 
     #mover(e) {
         const alvo = this.interativo ? this.#intersectar(e) : null;
-        this.hover = alvo?.tipo === "pedra" && this.jogaveis.has(alvo.chave) ? alvo.chave : null;
+        this.hover = alvo?.tipo === "pedra" ? alvo.chave : null;
         this.canvas.style.cursor = this.hover || alvo?.tipo === "lado" ? "pointer" : "default";
     }
 
@@ -516,7 +485,6 @@ export class Cena {
         for (const m of this.versos) animar(m);
         for (const m of this.cava) animar(m);
 
-        this.matBrilho.opacity = 0.35 + Math.sin(t * 4) * 0.2;
         this.matFantasma.opacity = 0.3 + Math.sin(t * 5) * 0.15;
         this.renderer.render(this.scene, this.camera);
     }
