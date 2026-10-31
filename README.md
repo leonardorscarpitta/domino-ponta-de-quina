@@ -125,7 +125,8 @@ Toda configuração vem de variáveis de ambiente (`.env` em desenvolvimento, *s
 2. **Perfis** – crie um jogador e clique em *Usar este perfil*. O cliente gera uma chave de 32 bytes, guarda-a cifrada e ativa o perfil.
    Para usar o perfil em outro cliente, clique em *Liberar*.
 3. **Partidas** – crie uma mesa (alvo 50/100/150) ou entre em uma mesa aguardando adversário. Também é possível abrir uma mesa pelo código.
-4. **Mesa** – quando houver dois participantes, clique em *Iniciar partida*. Na sua vez, as pedras que encaixam brilham em rosa:
+4. **Mesa** – o topo mostra rodada, cava, versão do estado, situação, próxima ação, pontas abertas (com a soma)
+   e, quando indicada, a pedra obrigatória de abertura. Quando houver dois participantes, clique em *Iniciar partida*. Na sua vez, as pedras que encaixam brilham em rosa:
    clique em uma para jogar. Se ela couber nas duas pontas, escolha o lado (os fantasmas na mesa e os botões mostram os pontos).
    *Comprar* e *Passar* só ficam habilitados quando a API indica essa ação.
 5. **Jogador autônomo** – ligue o interruptor para que o servidor jogue por você. Desligue para retomar o controle.
@@ -225,6 +226,14 @@ classDiagram
         +ObterEstadoAsync(cred, partidaId, jogadorId)
         +ObterAtualizacoesAsync(cred, partidaId, jogadorId, versao) EstadoPartidaParticipante?
         +ObterResultadoAsync(cred, partidaId, jogadorId) ResultadoHistoricoPartida
+        +VisualizarAsync(cred, partidaId) EstadoPartidaObservador
+    }
+    class EstadoPartidaObservador {
+        <<record>>
+        +PartidaId Guid
+        +VersaoEstado long
+        +Situacao SituacaoPartida
+        +Participantes List~ResumoParticipantePartida~
     }
     class ApiCredenciais {
         <<record>>
@@ -339,6 +348,7 @@ classDiagram
     EstadoPartidaParticipante *-- PecaPartida
     DominoApiClient ..> ApiCredenciais
     DominoApiClient ..> DominoApiException : lança
+    DominoApiClient ..> EstadoPartidaObservador
     ExecutorAcoes --> DominoApiClient
     ExecutorAcoes ..> Decisao
     GerenciadorAutonomo --> IEstrategiaJogo
