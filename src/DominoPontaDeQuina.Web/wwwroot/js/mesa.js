@@ -3,6 +3,8 @@ import { Cena, chave } from "./cena.js";
 // Enum values mirror the API contract (numeric JSON enums).
 const Situacao = { AguardandoInicio: 0, EmAndamento: 1, Encerrada: 2 };
 const Acao = { Aguardar: 0, JogarAbertura: 1, Jogar: 2, Comprar: 3, Passar: 4, Encerrar: 5 };
+const NOME_SITUACAO = ["Aguardando início", "Em andamento", "Encerrada"];
+const NOME_ACAO = ["Aguardar", "Jogar abertura", "Jogar", "Comprar", "Passar", "Encerrada"];
 const INTERVALO_CONSULTA = 1500;
 const INTERVALO_OCULTO = 5000;
 
@@ -55,6 +57,16 @@ function render(anterior) {
     campo("rodada").textContent = `Rodada ${visao.rodada}`;
     campo("cava").textContent = `Cava: ${visao.cava}`;
     campo("versao").textContent = `v${visao.versao}`;
+    campo("situacao").textContent = NOME_SITUACAO[visao.situacao] ?? "—";
+    campo("proxima-acao").textContent = visao.situacao === Situacao.EmAndamento && !visao.minhaVez
+        ? `Vez de ${op?.nome ?? "oponente"}`
+        : `Próxima ação: ${NOME_ACAO[visao.proximaAcao] ?? "—"}`;
+    campo("pontas").textContent = visao.pontas
+        ? `Pontas ${visao.pontas.esquerda} | ${visao.pontas.direita} (soma ${visao.pontas.esquerda + visao.pontas.direita})`
+        : "Mesa vazia";
+    const abertura = visao.aberturaObrigatoria;
+    campo("abertura").hidden = !(abertura && visao.minhaVez && visao.cadeia.length === 0);
+    campo("abertura").textContent = abertura ? `Abra com [${abertura.valorA}|${abertura.valorB}]` : "";
     $("hud-eu").classList.toggle("ativo", !!eu?.ehVez);
     $("hud-oponente").classList.toggle("ativo", !!op?.ehVez);
 

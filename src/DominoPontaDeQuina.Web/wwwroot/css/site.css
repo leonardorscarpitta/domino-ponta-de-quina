@@ -330,7 +330,16 @@ body.tela-mesa { overflow: hidden; }
 .hud-jogador.oponente { top: 1rem; left: 1rem; }
 .hud-jogador.eu { bottom: 1.2rem; left: 1rem; }
 
-.hud-status { top: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.4rem; }
+.hud-status {
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    max-width: min(760px, calc(100% - 30rem));
+}
 .hud-status span {
     padding: 0.25rem 0.8rem;
     border-radius: 999px;
@@ -342,6 +351,7 @@ body.tela-mesa { overflow: hidden; }
     color: var(--texto-2);
 }
 .hud-status span:first-child { color: var(--ouro); }
+.hud-status span.destaque { color: #fff; background: var(--rosa); }
 
 .hud-relogio { top: 0.8rem; right: 1rem; width: 82px; height: 82px; display: grid; place-items: center; filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.5)); }
 .hud-relogio svg { position: absolute; inset: 0; transform: rotate(-90deg); }
@@ -548,7 +558,7 @@ body.tela-mesa { overflow: hidden; }
 
 @media (max-width: 860px) {
     .entrada, .painel-duplo, .lobby { grid-template-columns: 1fr; }
-    .hud-status { top: auto; bottom: 5.8rem; }
+    .hud-status { top: auto; bottom: 5.8rem; max-width: calc(100% - 24rem); }
     .hud-jogador { min-width: 0; }
     .usuario small { display: none; }
     .hud-acoes { width: 120px; }
