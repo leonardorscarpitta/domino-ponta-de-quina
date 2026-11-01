@@ -80,20 +80,23 @@ export function layoutCadeia(cadeia, indiceAbertura) {
             d = novo;
         };
 
+        // Doubles always lie crosswise. A double never makes the arm turn (it is short), and one
+        // that follows the corner stone keeps going down the column; the arm turns back after it.
+        // Otherwise a crosswise double right after the corner would overlap the corner stone.
         const colocar = (peca) => {
-            const dupla = peca && peca.valorA === peca.valorB;
-            if (naCurva) {
+            const dupla = !!peca && peca.valorA === peca.valorB;
+            if (naCurva && !dupla) {
                 horizontal = -horizontal;
                 virar({ x: horizontal, z: 0 });
                 naCurva = false;
             }
             let comprimento = dupla ? W : L;
-            if (d.z === 0 && Math.abs(p.x + d.x * comprimento) > LIMITE_X) {
+            if (!dupla && d.z === 0 && Math.abs(p.x + d.x * comprimento) > LIMITE_X) {
                 virar({ x: 0, z: virada });
                 naCurva = true;
                 comprimento = L;
             }
-            const transversal = dupla && !naCurva;
+            const transversal = dupla;
             const local = {
                 x: p.x + d.x * comprimento / 2,
                 z: p.z + d.z * comprimento / 2,
